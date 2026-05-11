@@ -1,6 +1,8 @@
 module github.com/DynamicKarabo/vps-deploy
 
-go 1.25
+go 1.23.0
+
+toolchain go1.23.6
 
 require (
 	github.com/spf13/cobra v1.9.1
