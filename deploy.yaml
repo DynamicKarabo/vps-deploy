@@ -1,0 +1,41 @@
+services:
+  filebrowser:
+    host: 178.105.76.236
+    user: root
+    key_path: ~/.ssh/vps_key
+    deploy_commands:
+      - mkdir -p /root/filebrowser/data /root/filebrowser/config /root/filebrowser/database
+      - cd /root/filebrowser && docker compose pull
+      - cd /root/filebrowser && docker compose up -d
+    health_check_url: http://localhost:8081/
+    rollback_command: cd /root/filebrowser && docker compose down
+
+  shiori:
+    host: 178.105.76.236
+    user: root
+    key_path: ~/.ssh/vps_key
+    deploy_commands:
+      - cd /root/shiori-deployment && docker compose pull
+      - cd /root/shiori-deployment && docker compose up -d
+    health_check_url: http://localhost:8080/health
+    rollback_command: cd /root/shiori-deployment && docker compose down
+
+  monitoring:
+    host: 178.105.76.236
+    user: root
+    key_path: ~/.ssh/vps_key
+    deploy_commands:
+      - cd /root/monitoring-stack && docker compose pull
+      - cd /root/monitoring-stack && docker compose up -d
+    health_check_url: http://localhost:3000/api/health
+    rollback_command: cd /root/monitoring-stack && docker compose down
+
+  n8n:
+    host: 178.105.76.236
+    user: root
+    key_path: ~/.ssh/vps_key
+    deploy_commands:
+      - cd /root && docker compose pull n8n
+      - cd /root && docker compose up -d n8n
+    health_check_url: http://localhost:5678/healthz
+    rollback_command: cd /root && docker compose stop n8n
