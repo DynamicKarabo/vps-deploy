@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  ci-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Run go vet
+        run: go vet ./...
+      - name: Run go build
+        run: GOTOOLCHAIN=go1.23.6 go build ./...
+
+  release:
+    needs: ci-check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+        exclude:
+          - goarch: arm64
+            goos: windows
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOTOOLCHAIN: go1.23.6
+        run: |
+          BINARY="vps-deploy-${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            BINARY="${BINARY}.exe"
+          fi
+          go build -o "$BINARY" .
+      - name: Package binary
+        run: |
+          BINARY="vps-deploy-${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            zip "${BINARY}.zip" "${BINARY}.exe"
+          else
+            tar czf "${BINARY}.tar.gz" "$BINARY"
+          fi
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            vps-deploy-*.tar.gz
+            vps-deploy-*.zip
+          generate_release_notes: true
