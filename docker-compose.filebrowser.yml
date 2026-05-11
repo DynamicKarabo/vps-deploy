@@ -1,0 +1,22 @@
+services:
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    labels:
+      - "managed_by=vps-deploy"
+      - "deployed_at=2026-05-11"
+    ports:
+      - "8081:80"
+    volumes:
+      - /root/filebrowser/data:/srv
+      - /root/filebrowser/config:/config
+      - /root/filebrowser/database:/database
+    environment:
+      - FB_BASEURL=/
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
